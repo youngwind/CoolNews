@@ -2,9 +2,12 @@ package com.example.youngwind.coolnews.activity;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 
 import com.example.youngwind.coolnews.R;
+import com.example.youngwind.coolnews.adapter.NormalRecyclerViewAdapter;
 import com.example.youngwind.coolnews.model.Newslist;
 import com.google.gson.Gson;
 import com.loopj.android.http.AsyncHttpClient;
@@ -13,6 +16,7 @@ import com.loopj.android.http.AsyncHttpResponseHandler;
 import cz.msebera.android.httpclient.Header;
 
 public class Index extends AppCompatActivity {
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,9 +37,9 @@ public class Index extends AppCompatActivity {
                 Gson gson = new Gson();
                 Newslist newslist = gson.fromJson(response, Newslist.class);
                 Log.d("response", String.valueOf(newslist.showapi_res_code));
-                Log.d("response", String.valueOf(newslist.showapi_res_body.pagebean.allPages));
                 Log.d("response", String.valueOf(newslist.showapi_res_body.pagebean.contentlist[0].title));
                 Log.d("response", String.valueOf(newslist.showapi_res_body.pagebean.contentlist[0].link));
+                showNewList(newslist);
             }
 
             @Override
@@ -43,5 +47,15 @@ public class Index extends AppCompatActivity {
                 Log.d("fai", new String(responseBody));
             }
         });
+    }
+
+    private void showNewList(Newslist newslist) {
+
+        final Newslist.Contentlist[] contentlist = newslist.showapi_res_body.pagebean.contentlist;
+
+        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        NormalRecyclerViewAdapter adapter = new NormalRecyclerViewAdapter(this, contentlist);
+        recyclerView.setAdapter(adapter);
     }
 }
