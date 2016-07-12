@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">CoolNews</string>
+    <string name="detail_name">新闻详情</string>
 </resources>

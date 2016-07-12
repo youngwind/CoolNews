@@ -1,6 +1,11 @@
 package com.example.youngwind.coolnews.adapter;
 
+import android.annotation.TargetApi;
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
+import android.os.Build;
+import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,6 +15,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.youngwind.coolnews.R;
+import com.example.youngwind.coolnews.activity.ItemDetail;
 import com.example.youngwind.coolnews.model.Newslist;
 
 /**
@@ -44,7 +50,7 @@ public class NormalRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         ((NormalTextViewHolder) holder).text.setText(contentlist[position].title);
-        ((NormalTextViewHolder) holder).layout.setTag(contentlist[position].title);
+        ((NormalTextViewHolder) holder).layout.setTag(contentlist[position].link);
     }
 
     public class NormalTextViewHolder extends RecyclerView.ViewHolder {
@@ -58,7 +64,14 @@ public class NormalRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView
             layout.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Toast.makeText(context, "" + view.getTag(), Toast.LENGTH_SHORT).show();
+                    String link = view.getTag().toString();
+                    Activity CurrentActivity = (Activity) view.getContext();
+                    Intent intent = new Intent(CurrentActivity, ItemDetail.class);
+                    Bundle b = new Bundle();
+                    b.putString("link", link);
+                    intent.putExtras(b);
+
+                    CurrentActivity.startActivity(intent);
                 }
             });
 
