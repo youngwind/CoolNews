@@ -23,6 +23,9 @@ public class Newslist {
         public String title;
         public String link;
         public String pubDate;
+
+        // 来源
+        public String source;
     }
 
 

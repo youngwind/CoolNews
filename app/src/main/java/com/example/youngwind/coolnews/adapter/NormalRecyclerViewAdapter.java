@@ -48,18 +48,21 @@ public class NormalRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         ((NormalTextViewHolder) holder).title.setText(contentlist[position].title);
         ((NormalTextViewHolder) holder).pubDate.setText(contentlist[position].pubDate);
+        ((NormalTextViewHolder) holder).source.setText("来源: " + contentlist[position].source);
         ((NormalTextViewHolder) holder).layout.setTag(contentlist[position].link);
     }
 
     public class NormalTextViewHolder extends RecyclerView.ViewHolder {
         private TextView title;
         private TextView pubDate;
+        private TextView source;
         private LinearLayout layout;
 
         public NormalTextViewHolder(View itemView) {
             super(itemView);
             title = (TextView) itemView.findViewById(R.id.title);
             pubDate = (TextView) itemView.findViewById(R.id.pubDate);
+            source = (TextView) itemView.findViewById(R.id.source);
             layout = (LinearLayout) itemView.findViewById(R.id.layout);
             layout.setOnClickListener(new View.OnClickListener() {
                 @Override
