@@ -22,6 +22,7 @@ public class Newslist {
     public class Contentlist {
         public String title;
         public String link;
+        public String pubDate;
     }
 
 

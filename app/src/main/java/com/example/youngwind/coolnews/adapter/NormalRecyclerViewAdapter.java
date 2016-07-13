@@ -1,10 +1,8 @@
 package com.example.youngwind.coolnews.adapter;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -12,7 +10,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.youngwind.coolnews.R;
 import com.example.youngwind.coolnews.activity.ItemDetail;
@@ -49,17 +46,20 @@ public class NormalRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView
     // 绑定数据
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-        ((NormalTextViewHolder) holder).text.setText(contentlist[position].title);
+        ((NormalTextViewHolder) holder).title.setText(contentlist[position].title);
+        ((NormalTextViewHolder) holder).pubDate.setText(contentlist[position].pubDate);
         ((NormalTextViewHolder) holder).layout.setTag(contentlist[position].link);
     }
 
     public class NormalTextViewHolder extends RecyclerView.ViewHolder {
-        private TextView text;
+        private TextView title;
+        private TextView pubDate;
         private LinearLayout layout;
 
         public NormalTextViewHolder(View itemView) {
             super(itemView);
-            text = (TextView) itemView.findViewById(R.id.text);
+            title = (TextView) itemView.findViewById(R.id.title);
+            pubDate = (TextView) itemView.findViewById(R.id.pubDate);
             layout = (LinearLayout) itemView.findViewById(R.id.layout);
             layout.setOnClickListener(new View.OnClickListener() {
                 @Override

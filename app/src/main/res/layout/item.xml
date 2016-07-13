@@ -7,19 +7,27 @@
     <LinearLayout
         android:id="@+id/layout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="5dp"
+        android:background="#ccc"
+        android:orientation="vertical"
+        android:paddingBottom="10dp"
+        android:paddingLeft="5dp"
+        android:paddingRight="5dp"
+        android:paddingTop="10dp">
 
         <TextView
-            android:id="@+id/text"
+            android:id="@+id/title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="#ccc"
-            android:layout_marginBottom="5dp"
-            android:paddingBottom="10dp"
-            android:paddingLeft="5dp"
-            android:paddingRight="5dp"
-            android:paddingTop="10dp"
-            android:textSize="20dp" />
+            android:textSize="20sp" />
+
+        <TextView
+            android:id="@+id/pubDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:textSize="12sp" />
     </LinearLayout>
 
 </LinearLayout>

@@ -14,10 +14,4 @@ public class Channels {
         public ChannelList[] channelList;
     }
 
-//    public class ChannelList {
-//        public String channelId;
-//        public String name;
-//
-//
-//    }
 }
