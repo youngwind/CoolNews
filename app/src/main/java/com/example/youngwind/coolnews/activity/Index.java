@@ -1,5 +1,7 @@
 package com.example.youngwind.coolnews.activity;
 
+import android.os.Handler;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -23,20 +25,24 @@ public class Index extends AppCompatActivity {
 
     private ListView mDrawerList;
     private String apiKey = "2c25fe0184c7cb0b54c813eae914ad7b";
+    private SwipeRefreshLayout swipeView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_index);
 
+        swipeView = (SwipeRefreshLayout) findViewById(R.id.swipe);
+
         getChannelList();
 
-        getNewsByChannelId("5572a109b3cdc86cf39001db");
+        getNewsByChannelId("5572a109b3cdc86cf39001db", "INIT_REQUEST");
+
+        setSwipeRefresh();
     }
 
     /**
      * 请求所有新闻频道
-     *
      */
     private void getChannelList() {
         AsyncHttpClient client = new AsyncHttpClient();
@@ -61,14 +67,20 @@ public class Index extends AppCompatActivity {
     /**
      * 请求某个频道的新闻信息
      *
-     * @param channelId {String} 频道ID
+     * @param channelId   频道ID
+     * @param requestType 请求类型, INIT_REQUEST:程序初始化请求, REFRESH_REQUEST:刷新请求
      */
-    private void getNewsByChannelId(String channelId) {
+    private void getNewsByChannelId(String channelId, final String requestType) {
         AsyncHttpClient client = new AsyncHttpClient();
         client.addHeader("apiKey", apiKey);
         client.get("http://apis.baidu.com/showapi_open_bus/channel_news/search_news?channelId=" + channelId, new AsyncHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+
+                if (requestType.equals("REFRESH_REQUEST")) {
+                    swipeView.setRefreshing(false);
+                }
+                Toast.makeText(Index.this, "已是最新", Toast.LENGTH_SHORT).show();
                 String response = new String(responseBody);
 
                 Gson gson = new Gson();
@@ -86,7 +98,8 @@ public class Index extends AppCompatActivity {
 
     /**
      * 显示新闻列表
-     * @param contentlist  新闻信息列表
+     *
+     * @param contentlist 新闻信息列表
      */
     private void showNewList(Newslist.Contentlist[] contentlist) {
 
@@ -98,11 +111,22 @@ public class Index extends AppCompatActivity {
 
     /**
      * 设置左滑菜单
+     *
      * @param channels 新闻频道列表
      */
     private void setDrawerLayout(Channels channels) {
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
         mDrawerList.setAdapter(new ChannelListAdapter(Index.this, R.layout.drawer_item, channels.showapi_res_body.channelList));
+    }
+
+    private void setSwipeRefresh() {
+        swipeView.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                swipeView.setRefreshing(true);
+                getNewsByChannelId("5572a109b3cdc86cf39001db", "REFRESH_REQUEST");
+            }
+        });
     }
 
 }
