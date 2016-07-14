@@ -1,18 +1,21 @@
 package com.example.youngwind.coolnews.activity;
 
-import android.os.Handler;
+import android.app.ActionBar;
+import android.renderscript.Sampler;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.View;
 import android.widget.ListView;
 import android.widget.Toast;
 
 import com.example.youngwind.coolnews.R;
 import com.example.youngwind.coolnews.adapter.ChannelListAdapter;
 import com.example.youngwind.coolnews.adapter.NormalRecyclerViewAdapter;
+import com.example.youngwind.coolnews.model.ChannelList;
 import com.example.youngwind.coolnews.model.Channels;
 import com.example.youngwind.coolnews.model.Newslist;
 import com.google.gson.Gson;
@@ -26,19 +29,33 @@ public class Index extends AppCompatActivity {
     private ListView mDrawerList;
     private String apiKey = "2c25fe0184c7cb0b54c813eae914ad7b";
     private SwipeRefreshLayout swipeView;
+    private RecyclerView recyclerView;
+    private LinearLayoutManager mLayoutManager;
+    private boolean loadingMore = false;
+    private Newslist.Contentlist[] contentlist;
+    private NormalRecyclerViewAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_index);
 
+        setTitle("国内热门");
+
+
         swipeView = (SwipeRefreshLayout) findViewById(R.id.swipe);
+        recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+        mLayoutManager = new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(mLayoutManager);
+        adapter = new NormalRecyclerViewAdapter(this, contentlist);
 
         getChannelList();
 
         getNewsByChannelId("5572a109b3cdc86cf39001db", "INIT_REQUEST");
 
         setSwipeRefresh();
+
+        setScrollUpLoadMore();
     }
 
     /**
@@ -53,7 +70,8 @@ public class Index extends AppCompatActivity {
                 String response = new String(responseBody);
                 Gson gson = new Gson();
                 Channels channels = gson.fromJson(response, Channels.class);
-                setDrawerLayout(channels);
+
+                setDrawerLayout(channels.showapi_res_body.channelList);
             }
 
             @Override
@@ -77,6 +95,8 @@ public class Index extends AppCompatActivity {
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
 
+                loadingMore = false;
+
                 if (requestType.equals("REFRESH_REQUEST")) {
                     swipeView.setRefreshing(false);
                 }
@@ -85,7 +105,8 @@ public class Index extends AppCompatActivity {
 
                 Gson gson = new Gson();
                 Newslist newslist = gson.fromJson(response, Newslist.class);
-                showNewList(newslist.showapi_res_body.pagebean.contentlist);
+                showNewList(newslist.showapi_res_body.pagebean.contentlist, requestType);
+
             }
 
             @Override
@@ -101,22 +122,24 @@ public class Index extends AppCompatActivity {
      *
      * @param contentlist 新闻信息列表
      */
-    private void showNewList(Newslist.Contentlist[] contentlist) {
+    private void showNewList(Newslist.Contentlist[] contentlist, String requestType) {
+        int length = adapter.getItemCount();
 
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        NormalRecyclerViewAdapter adapter = new NormalRecyclerViewAdapter(this, contentlist);
+        adapter.insert(contentlist, requestType);
+
         recyclerView.setAdapter(adapter);
+
+        recyclerView.scrollToPosition(adapter.getItemCount() - 27);
     }
 
     /**
      * 设置左滑菜单
      *
-     * @param channels 新闻频道列表
+     * @param channelList 新闻频道列表
      */
-    private void setDrawerLayout(Channels channels) {
+    private void setDrawerLayout(ChannelList[] channelList) {
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
-        mDrawerList.setAdapter(new ChannelListAdapter(Index.this, R.layout.drawer_item, channels.showapi_res_body.channelList));
+        mDrawerList.setAdapter(new ChannelListAdapter(Index.this, R.layout.drawer_item, channelList));
     }
 
     private void setSwipeRefresh() {
@@ -125,6 +148,28 @@ public class Index extends AppCompatActivity {
             public void onRefresh() {
                 swipeView.setRefreshing(true);
                 getNewsByChannelId("5572a109b3cdc86cf39001db", "REFRESH_REQUEST");
+            }
+        });
+    }
+
+    /**
+     * 设置上拉加载更多
+     */
+    private void setScrollUpLoadMore() {
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                int lastVisibleItem = ((LinearLayoutManager) mLayoutManager).findLastVisibleItemPosition();
+                int totalItemCount = adapter.getItemCount();
+                if (lastVisibleItem >= totalItemCount - 4 && dy > 0) {
+                    if (!loadingMore) {
+                        loadingMore = true;
+                        Toast.makeText(Index.this, "loading more", Toast.LENGTH_SHORT).show();
+                        getNewsByChannelId("5572a109b3cdc86cf39001db", "");
+                    }
+
+                }
             }
         });
     }

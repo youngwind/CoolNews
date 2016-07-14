@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -34,7 +35,30 @@ public class NormalRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView
 
     @Override
     public int getItemCount() {
-        return contentlist.length;
+        if (contentlist == null) {
+            return 0;
+        } else {
+            return contentlist.length;
+        }
+
+    }
+
+    public void insert(Newslist.Contentlist[] contentlist, String requestType) {
+        if (requestType.equals("REFRESH_REQUEST")) {
+            this.contentlist = null;
+        }
+        int preLength;
+        if (this.contentlist == null) {
+            this.contentlist = contentlist.clone();
+            preLength = 0;
+        } else {
+            preLength = this.contentlist.length;
+            Newslist.Contentlist[] temp = new Newslist.Contentlist[this.contentlist.length + contentlist.length];
+            System.arraycopy(this.contentlist, 0, temp, 0, this.contentlist.length);
+            System.arraycopy(contentlist, 0, temp, this.contentlist.length, contentlist.length);
+            this.contentlist = temp;
+        }
+        notifyDataSetChanged();
     }
 
     // 导入布局文件
@@ -46,7 +70,7 @@ public class NormalRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView
     // 绑定数据
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-        ((NormalTextViewHolder) holder).title.setText(contentlist[position].title);
+        ((NormalTextViewHolder) holder).title.setText(position + 1 + ". " + contentlist[position].title);
         ((NormalTextViewHolder) holder).pubDate.setText(contentlist[position].pubDate);
         ((NormalTextViewHolder) holder).source.setText("来源: " + contentlist[position].source);
         ((NormalTextViewHolder) holder).layout.setTag(contentlist[position].link);
