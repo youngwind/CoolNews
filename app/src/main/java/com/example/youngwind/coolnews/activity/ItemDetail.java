@@ -21,10 +21,6 @@ public class ItemDetail extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_item_detail);
-
-        android.support.v7.app.ActionBar actionBar = getSupportActionBar();
-        actionBar.setDisplayHomeAsUpEnabled(true);
-
         progressDialog = new ProgressDialog(this);
         progressDialog.setMessage("加载中....");
         progressDialog.setCancelable(true);

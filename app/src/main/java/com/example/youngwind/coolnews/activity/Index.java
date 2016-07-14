@@ -2,13 +2,16 @@ package com.example.youngwind.coolnews.activity;
 
 import android.app.ActionBar;
 import android.renderscript.Sampler;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -26,6 +29,7 @@ import cz.msebera.android.httpclient.Header;
 
 public class Index extends AppCompatActivity {
 
+    private DrawerLayout drawerLayout;
     private ListView mDrawerList;
     private String apiKey = "2c25fe0184c7cb0b54c813eae914ad7b";
     private SwipeRefreshLayout swipeView;
@@ -34,6 +38,11 @@ public class Index extends AppCompatActivity {
     private boolean loadingMore = false;
     private Newslist.Contentlist[] contentlist;
     private NormalRecyclerViewAdapter adapter;
+    private int currentPage = 1;
+    private int allPages;
+    private ChannelList[] channelLists;
+    private String currentChannelId;
+    private String currentChannelName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +52,7 @@ public class Index extends AppCompatActivity {
         setTitle("国内热门");
 
 
+        drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         swipeView = (SwipeRefreshLayout) findViewById(R.id.swipe);
         recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
         mLayoutManager = new LinearLayoutManager(this);
@@ -50,8 +60,6 @@ public class Index extends AppCompatActivity {
         adapter = new NormalRecyclerViewAdapter(this, contentlist);
 
         getChannelList();
-
-        getNewsByChannelId("5572a109b3cdc86cf39001db", "INIT_REQUEST");
 
         setSwipeRefresh();
 
@@ -71,7 +79,11 @@ public class Index extends AppCompatActivity {
                 Gson gson = new Gson();
                 Channels channels = gson.fromJson(response, Channels.class);
 
+                channelLists = channels.showapi_res_body.channelList;
+                currentChannelId = channelLists[0].getChannelId();
                 setDrawerLayout(channels.showapi_res_body.channelList);
+                getNewsByChannelId(currentChannelId, "INIT_REQUEST");
+
             }
 
             @Override
@@ -91,20 +103,21 @@ public class Index extends AppCompatActivity {
     private void getNewsByChannelId(String channelId, final String requestType) {
         AsyncHttpClient client = new AsyncHttpClient();
         client.addHeader("apiKey", apiKey);
-        client.get("http://apis.baidu.com/showapi_open_bus/channel_news/search_news?channelId=" + channelId, new AsyncHttpResponseHandler() {
+        client.get("http://apis.baidu.com/showapi_open_bus/channel_news/search_news?channelId=" + channelId + "&page=" + currentPage, new AsyncHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-
+                currentPage++;
                 loadingMore = false;
 
                 if (requestType.equals("REFRESH_REQUEST")) {
                     swipeView.setRefreshing(false);
                 }
-                Toast.makeText(Index.this, "已是最新", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(Index.this, "已是最新", Toast.LENGTH_SHORT).show();
                 String response = new String(responseBody);
 
                 Gson gson = new Gson();
                 Newslist newslist = gson.fromJson(response, Newslist.class);
+                allPages = newslist.showapi_res_body.pagebean.allPages;
                 showNewList(newslist.showapi_res_body.pagebean.contentlist, requestType);
 
             }
@@ -140,6 +153,22 @@ public class Index extends AppCompatActivity {
     private void setDrawerLayout(ChannelList[] channelList) {
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
         mDrawerList.setAdapter(new ChannelListAdapter(Index.this, R.layout.drawer_item, channelList));
+        mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
+    }
+
+    /**
+     * 左侧导航栏点击事件绑定
+     */
+    private class DrawerItemClickListener implements ListView.OnItemClickListener {
+        @Override
+        public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+            currentChannelName = channelLists[i].getName();
+            setTitle(currentChannelName);
+            currentChannelId = channelLists[i].getChannelId();
+            currentPage = 1;
+            drawerLayout.closeDrawer(Gravity.LEFT);
+            getNewsByChannelId(currentChannelId, "REFRESH_REQUEST");
+        }
     }
 
     private void setSwipeRefresh() {
@@ -147,7 +176,7 @@ public class Index extends AppCompatActivity {
             @Override
             public void onRefresh() {
                 swipeView.setRefreshing(true);
-                getNewsByChannelId("5572a109b3cdc86cf39001db", "REFRESH_REQUEST");
+                getNewsByChannelId(currentChannelId, "REFRESH_REQUEST");
             }
         });
     }
@@ -163,10 +192,14 @@ public class Index extends AppCompatActivity {
                 int lastVisibleItem = ((LinearLayoutManager) mLayoutManager).findLastVisibleItemPosition();
                 int totalItemCount = adapter.getItemCount();
                 if (lastVisibleItem >= totalItemCount - 4 && dy > 0) {
+                    if (currentPage == allPages) {
+                        Toast.makeText(Index.this, "没有更多了...", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
                     if (!loadingMore) {
                         loadingMore = true;
-                        Toast.makeText(Index.this, "loading more", Toast.LENGTH_SHORT).show();
-                        getNewsByChannelId("5572a109b3cdc86cf39001db", "");
+//                        Toast.makeText(Index.this, "加载中....", Toast.LENGTH_SHORT).show();
+                        getNewsByChannelId(currentChannelId, "");
                     }
 
                 }
